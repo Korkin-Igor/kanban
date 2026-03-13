@@ -1,3 +1,4 @@
+// src/composables/useKanbanStore.js
 import { reactive, ref } from 'vue';
 
 export function useKanbanStore() {
@@ -24,6 +25,9 @@ export function useKanbanStore() {
     const isModalOpen = ref(false);
     const currentTask = ref(null);
     const isCreating = ref(false);
+
+    // Для Drag-and-Drop
+    const draggedTaskId = ref(null);
 
     const createTask = (taskData) => {
         const newTask = {
@@ -75,11 +79,20 @@ export function useKanbanStore() {
         if (task) {
             task.status = newStatus;
             task.updatedAt = new Date().toISOString();
-
             if (newStatus === 'in_progress' && reason) {
                 task.returnReason = reason;
             }
         }
+    };
+
+    // Новый метод для Drag-and-Drop
+    const handleDrop = (taskId, newStatus) => {
+        // Проверка: нельзя перетаскивать в ту же колонку
+        const task = tasks.find(t => t.id === taskId);
+        if (task && task.status !== newStatus) {
+            moveTask(taskId, newStatus);
+        }
+        draggedTaskId.value = null;
     };
 
     const checkDeadlineStatus = (task) => {
@@ -95,12 +108,14 @@ export function useKanbanStore() {
         isModalOpen,
         currentTask,
         isCreating,
+        draggedTaskId,
         createTask,
         updateTask,
         deleteTask,
         openEditModal,
         openCreateModal,
         moveTask,
+        handleDrop,
         checkDeadlineStatus
     };
 }

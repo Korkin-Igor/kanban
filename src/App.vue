@@ -28,11 +28,15 @@
 </template>
 
 <script setup>
+import { provide } from 'vue';
 import { useKanbanStore } from './composables/useKanbanStore';
 import KanbanColumn from './components/KanbanColumn.vue';
 import TaskModal from './components/TaskModal.vue';
 
 const store = useKanbanStore();
+
+// Предоставляем store всем дочерним компонентам
+provide('kanbanStore', store);
 
 const {
   columns, isModalOpen, currentTask, isCreating,

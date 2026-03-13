@@ -1,5 +1,11 @@
 <template>
-  <div class="column">
+  <div
+      class="column"
+      @dragover.prevent="onDragOver"
+      @dragleave="onDragLeave"
+      @drop="onDrop"
+      :class="{ 'drag-over': isDragOver }"
+  >
     <div class="column-header">
       <h3>{{ column.title }}</h3>
       <span class="count">{{ tasks.length }}</span>
@@ -28,14 +34,37 @@
 </template>
 
 <script setup>
+import { ref, inject } from 'vue';
 import KanbanCard from './KanbanCard.vue';
 
-defineProps({
+const props = defineProps({
   column: Object,
   tasks: Array
 });
 
-defineEmits(['edit', 'delete', 'move', 'create']);
+const emit = defineEmits(['edit', 'delete', 'move', 'create']);
+
+const store = inject('kanbanStore');
+const isDragOver = ref(false);
+
+const onDragOver = (e) => {
+  e.preventDefault();
+  isDragOver.value = true;
+};
+
+const onDragLeave = () => {
+  isDragOver.value = false;
+};
+
+const onDrop = (e) => {
+  e.preventDefault();
+  isDragOver.value = false;
+
+  const taskId = store.draggedTaskId.value;
+  if (taskId) {
+    store.handleDrop(taskId, props.column.id);
+  }
+};
 </script>
 
 <style scoped>
@@ -47,6 +76,12 @@ defineEmits(['edit', 'delete', 'move', 'create']);
   display: flex;
   flex-direction: column;
   max-height: 100%;
+  transition: background-color 0.2s;
+}
+
+.column.drag-over {
+  background-color: #dfe1e6;
+  box-shadow: inset 0 0 0 2px #0052cc;
 }
 
 .column-header {
@@ -71,6 +106,7 @@ defineEmits(['edit', 'delete', 'move', 'create']);
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-height: 100px; /* Чтобы можно было дропнуть в пустую колонку */
 }
 
 .add-btn {
@@ -83,10 +119,5 @@ defineEmits(['edit', 'delete', 'move', 'create']);
   text-align: left;
   border-radius: 4px;
   transition: background 0.2s;
-}
-
-.add-btn:hover {
-  background-color: rgba(9, 30, 66, 0.08);
-  color: #172b4d;
 }
 </style>

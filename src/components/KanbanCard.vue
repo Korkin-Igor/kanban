@@ -1,10 +1,15 @@
 <template>
-  <div class="card">
+  <div
+      class="card"
+      draggable="true"
+      @dragstart="onDragStart"
+      @dragend="onDragEnd"
+  >
     <div class="card-header">
       <span class="card-id">#{{ task.id.toString().slice(-4) }}</span>
       <div class="actions">
-        <button class="icon-btn" @click="$emit('edit')" title="Редактировать">✏️</button>
-        <button class="icon-btn delete" v-if="columnId === 'planned'" @click="$emit('delete')" title="Удалить">🗑️</button>
+        <button class="icon-btn" @click.stop="$emit('edit')" title="Редактировать">✏️</button>
+        <button class="icon-btn delete" v-if="columnId === 'planned'" @click.stop="$emit('delete')" title="Удалить">🗑️</button>
       </div>
     </div>
 
@@ -21,7 +26,6 @@
     </div>
 
     <div class="card-actions">
-
       <button v-if="columnId === 'planned'" class="action-btn primary" @click="move('in_progress')">
         В работу ▶
       </button>
@@ -51,7 +55,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 
 const props = defineProps({
   task: Object,
@@ -60,7 +64,9 @@ const props = defineProps({
 
 const emit = defineEmits(['move', 'edit', 'delete']);
 
-// Вычисляем статус дедлайна для 4 колонки
+// Получаем store через provide/inject или props
+const store = inject('kanbanStore');
+
 const deadlineStatus = computed(() => {
   if (props.columnId !== 'done') return null;
   const now = new Date();
@@ -79,14 +85,24 @@ const returnToWork = () => {
   }
 };
 
-const formatDate = (dateStr) => {
-  return new Date(dateStr).toLocaleDateString('ru-RU');
+// Drag-and-Drop обработчики
+const onDragStart = (e) => {
+  store.draggedTaskId.value = props.task.id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', props.task.id);
+  // Добавляем класс для визуализации
+  setTimeout(() => {
+    e.target.classList.add('dragging');
+  }, 0);
 };
 
-const formatRelativeTime = (dateStr) => {
-  const date = new Date(dateStr);
-  return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+const onDragEnd = (e) => {
+  store.draggedTaskId.value = null;
+  e.target.classList.remove('dragging');
 };
+
+const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('ru-RU');
+const formatRelativeTime = (dateStr) => new Date(dateStr).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 </script>
 
 <style scoped>
@@ -95,15 +111,27 @@ const formatRelativeTime = (dateStr) => {
   border-radius: 6px;
   padding: 12px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: box-shadow 0.2s;
+  cursor: grab;
+  transition: all 0.2s;
   position: relative;
+  user-select: none; /* Чтобы текст не выделялся при драге */
 }
 
 .card:hover {
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+.card:active {
+  cursor: grabbing;
+}
+
+.card.dragging {
+  opacity: 0.5;
+  transform: rotate(3deg);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+/* Остальные стили карточки без изменений... */
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -168,10 +196,7 @@ const formatRelativeTime = (dateStr) => {
 .primary:hover { background-color: #0065ff; }
 
 .success { background-color: #36b37e; color: white; }
-.success:hover { background-color: #36b37e; opacity: 0.9; }
-
 .warning { background-color: #ffab00; color: #172b4d; }
-.warning:hover { background-color: #ffab00; opacity: 0.9; }
 
 .done-status {
   text-align: center;
