@@ -42,7 +42,17 @@ const onDrop = (e) => {
   >
     <div class="column-header">
       <h3>{{ column.title }}</h3>
-      <span class="count">{{ tasks.length }}</span>
+      <div class="header-stats">
+        <span class="count">{{ tasks.length }}</span>
+        <span
+            v-if="column.id === 'done'"
+            class="overdue-count"
+            :class="{ 'has-overdue': store.countOverduedTasks > 0 }"
+            :title="`${store.countOverduedTasks} просроченных задач`"
+        >
+          Просроченых задач: {{ store.countOverduedTasks }}
+        </span>
+      </div>
     </div>
 
     <div class="task-list">
@@ -92,11 +102,17 @@ const onDrop = (e) => {
   font-weight: 600;
 }
 
+.header-stats {
+  display: flex;
+  flex-direction: column;
+}
+
 .count {
   background: rgba(0,0,0,0.1);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.8rem;
+  max-width: 8px;
 }
 
 .task-list {

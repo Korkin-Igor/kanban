@@ -1,19 +1,8 @@
 // src/composables/useKanbanStore.js
-import { reactive, ref } from 'vue';
+import {computed, reactive, ref} from 'vue';
 
 export function useKanbanStore() {
-    const tasks = reactive([
-        {
-            id: 1,
-            title: "Разработать макет",
-            description: "Сделать дизайн главной страницы",
-            deadline: "2023-12-01",
-            status: "planned",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            returnReason: ""
-        }
-    ]);
+    const tasks = reactive([]);
 
     const columns = [
         { id: 'planned', title: 'Запланированные задачи' },
@@ -25,6 +14,15 @@ export function useKanbanStore() {
     const isModalOpen = ref(false);
     const currentTask = ref(null);
     const isCreating = ref(false);
+
+    const countOverduedTasks = computed(() => {
+        const now = new Date();
+        return tasks.filter(task => {
+            if (task.status !== 'done' || !task.deadline) return false;
+            const deadline = new Date(task.deadline);
+            return now > deadline;
+        }).length;
+    });
 
     // Для Drag-and-Drop
     const draggedTaskId = ref(null);
@@ -85,7 +83,7 @@ export function useKanbanStore() {
         }
     };
 
-    // Новый метод для Drag-and-Drop
+    // метод для Drag-and-Drop
     const handleDrop = (taskId, newStatus) => {
         // Проверка: нельзя перетаскивать в ту же колонку
         const task = tasks.find(t => t.id === taskId);
@@ -109,6 +107,7 @@ export function useKanbanStore() {
         currentTask,
         isCreating,
         draggedTaskId,
+        countOverduedTasks,
         createTask,
         updateTask,
         deleteTask,
