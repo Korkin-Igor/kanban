@@ -1,3 +1,25 @@
+<script setup>
+import { reactive, watch } from 'vue';
+
+const props = defineProps({
+  isCreating: Boolean,
+  task: Object
+});
+
+const emit = defineEmits(['close', 'save']);
+
+const localTask = reactive({ ...props.task });
+
+watch(() => props.task, (newVal) => {
+  Object.assign(localTask, newVal);
+}, { deep: true });
+
+const save = () => {
+  if (!localTask.title.trim()) return alert('Заголовок обязателен');
+  emit('save', { ...localTask });
+};
+</script>
+
 <template>
   <div class="modal-overlay" @click.self="$emit('close')">
     <div class="modal">
@@ -25,28 +47,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { reactive, watch } from 'vue';
-
-const props = defineProps({
-  isCreating: Boolean,
-  task: Object
-});
-
-const emit = defineEmits(['close', 'save']);
-
-const localTask = reactive({ ...props.task });
-
-watch(() => props.task, (newVal) => {
-  Object.assign(localTask, newVal);
-}, { deep: true });
-
-const save = () => {
-  if (!localTask.title.trim()) return alert('Заголовок обязателен');
-  emit('save', { ...localTask });
-};
-</script>
 
 <style scoped>
 .modal-overlay {

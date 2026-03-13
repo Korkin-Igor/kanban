@@ -1,3 +1,37 @@
+<script setup>
+import { ref, inject } from 'vue';
+import KanbanCard from './KanbanCard.vue';
+
+const props = defineProps({
+  column: Object,
+  tasks: Array
+});
+
+const emit = defineEmits(['edit', 'delete', 'move', 'create']);
+
+const store = inject('kanbanStore');
+const isDragOver = ref(false);
+
+const onDragOver = (e) => {
+  e.preventDefault();
+  isDragOver.value = true;
+};
+
+const onDragLeave = () => {
+  isDragOver.value = false;
+};
+
+const onDrop = (e) => {
+  e.preventDefault();
+  isDragOver.value = false;
+
+  const taskId = store.draggedTaskId.value;
+  if (taskId) {
+    store.handleDrop(taskId, props.column.id);
+  }
+};
+</script>
+
 <template>
   <div
       class="column"
@@ -32,40 +66,6 @@
     </button>
   </div>
 </template>
-
-<script setup>
-import { ref, inject } from 'vue';
-import KanbanCard from './KanbanCard.vue';
-
-const props = defineProps({
-  column: Object,
-  tasks: Array
-});
-
-const emit = defineEmits(['edit', 'delete', 'move', 'create']);
-
-const store = inject('kanbanStore');
-const isDragOver = ref(false);
-
-const onDragOver = (e) => {
-  e.preventDefault();
-  isDragOver.value = true;
-};
-
-const onDragLeave = () => {
-  isDragOver.value = false;
-};
-
-const onDrop = (e) => {
-  e.preventDefault();
-  isDragOver.value = false;
-
-  const taskId = store.draggedTaskId.value;
-  if (taskId) {
-    store.handleDrop(taskId, props.column.id);
-  }
-};
-</script>
 
 <style scoped>
 .column {
@@ -106,7 +106,7 @@ const onDrop = (e) => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 100px; /* Чтобы можно было дропнуть в пустую колонку */
+  min-height: 100px;
 }
 
 .add-btn {

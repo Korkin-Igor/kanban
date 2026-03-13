@@ -1,3 +1,31 @@
+<script setup>
+import { provide } from 'vue';
+import { useKanbanStore } from './composables/useKanbanStore';
+import KanbanColumn from './components/KanbanColumn.vue';
+import TaskModal from './components/TaskModal.vue';
+
+const store = useKanbanStore();
+
+provide('kanbanStore', store);
+
+const {
+  columns, isModalOpen, currentTask, isCreating,
+  openEditModal, openCreateModal, deleteTask, moveTask, createTask, updateTask
+} = store;
+
+const getTasksByColumn = (status) => {
+  return store.tasks.filter(t => t.status === status);
+};
+
+const handleSave = (taskData) => {
+  if (isCreating.value) {
+    createTask(taskData);
+  } else {
+    updateTask(taskData);
+  }
+};
+</script>
+
 <template>
   <div class="app-container">
     <header class="header">
@@ -26,35 +54,6 @@
     />
   </div>
 </template>
-
-<script setup>
-import { provide } from 'vue';
-import { useKanbanStore } from './composables/useKanbanStore';
-import KanbanColumn from './components/KanbanColumn.vue';
-import TaskModal from './components/TaskModal.vue';
-
-const store = useKanbanStore();
-
-// Предоставляем store всем дочерним компонентам
-provide('kanbanStore', store);
-
-const {
-  columns, isModalOpen, currentTask, isCreating,
-  openEditModal, openCreateModal, deleteTask, moveTask, createTask, updateTask
-} = store;
-
-const getTasksByColumn = (status) => {
-  return store.tasks.filter(t => t.status === status);
-};
-
-const handleSave = (taskData) => {
-  if (isCreating.value) {
-    createTask(taskData);
-  } else {
-    updateTask(taskData);
-  }
-};
-</script>
 
 <style>
 .app-container {

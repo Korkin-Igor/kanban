@@ -1,3 +1,53 @@
+<script setup>
+import { computed, inject } from 'vue';
+
+const props = defineProps({
+  task: Object,
+  columnId: String
+});
+
+const emit = defineEmits(['move', 'edit', 'delete']);
+
+const store = inject('kanbanStore');
+
+const deadlineStatus = computed(() => {
+  if (props.columnId !== 'done') return null;
+  const now = new Date();
+  const deadline = new Date(props.task.deadline);
+  return now > deadline ? 'overdue' : 'ontime';
+});
+
+const move = (newStatus) => {
+  emit('move', { status: newStatus, reason: '' });
+};
+
+const returnToWork = () => {
+  const reason = prompt("Укажите причину возврата задачи в работу:");
+  if (reason) {
+    emit('move', { status: 'in_progress', reason: reason });
+  }
+};
+
+// Drag-and-Drop обработчики
+const onDragStart = (e) => {
+  store.draggedTaskId.value = props.task.id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', props.task.id);
+  // Добавляем класс для визуализации
+  setTimeout(() => {
+    e.target.classList.add('dragging');
+  }, 0);
+};
+
+const onDragEnd = (e) => {
+  store.draggedTaskId.value = null;
+  e.target.classList.remove('dragging');
+};
+
+const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('ru-RU');
+const formatRelativeTime = (dateStr) => new Date(dateStr).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+</script>
+
 <template>
   <div
       class="card"
@@ -53,57 +103,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { computed, inject } from 'vue';
-
-const props = defineProps({
-  task: Object,
-  columnId: String
-});
-
-const emit = defineEmits(['move', 'edit', 'delete']);
-
-// Получаем store через provide/inject или props
-const store = inject('kanbanStore');
-
-const deadlineStatus = computed(() => {
-  if (props.columnId !== 'done') return null;
-  const now = new Date();
-  const deadline = new Date(props.task.deadline);
-  return now > deadline ? 'overdue' : 'ontime';
-});
-
-const move = (newStatus) => {
-  emit('move', { status: newStatus, reason: '' });
-};
-
-const returnToWork = () => {
-  const reason = prompt("Укажите причину возврата задачи в работу:");
-  if (reason) {
-    emit('move', { status: 'in_progress', reason: reason });
-  }
-};
-
-// Drag-and-Drop обработчики
-const onDragStart = (e) => {
-  store.draggedTaskId.value = props.task.id;
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', props.task.id);
-  // Добавляем класс для визуализации
-  setTimeout(() => {
-    e.target.classList.add('dragging');
-  }, 0);
-};
-
-const onDragEnd = (e) => {
-  store.draggedTaskId.value = null;
-  e.target.classList.remove('dragging');
-};
-
-const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('ru-RU');
-const formatRelativeTime = (dateStr) => new Date(dateStr).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-</script>
 
 <style scoped>
 .card {
