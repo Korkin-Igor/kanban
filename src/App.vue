@@ -53,17 +53,11 @@ const handleSave = (taskData) => {
 </script>
 
 <style>
-body {
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f5f7;
-  color: #172b4d;
-}
-
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  width: 100%;
 }
 
 .header {
@@ -79,6 +73,8 @@ body {
   gap: 20px;
   overflow-x: auto;
   height: 100%;
+  width: 100%;
+  margin: 0 auto;
   align-items: flex-start;
 }
 </style>
